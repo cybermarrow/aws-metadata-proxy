@@ -9,12 +9,13 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-
+	"flag"
 	"github.com/gorilla/mux"
 )
 
 var (
 	whitelist [5]string
+	port = flag.String("port", "9090", "Specify Port")
 )
 
 func init() {
@@ -50,7 +51,7 @@ func ProxyHandler(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Requ
 func main() {
 
 	log.Println("Starting proxy...")
-
+	flag.Parse()
 	target := "http://169.254.169.254"
 	remote, err := url.Parse(target)
 	if err != nil {
@@ -63,7 +64,7 @@ func main() {
 	router.HandleFunc("/{path:.*}", ProxyHandler(proxy))
 
 	go func() {
-		log.Fatal(http.ListenAndServe("127.0.0.1:9090", router))
+		log.Fatal(http.ListenAndServe("127.0.0.1:" + *port, router))
 	}()
 
 	// Check for interrupt signal and exit cleanly
